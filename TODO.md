@@ -86,10 +86,22 @@ These weren't part of the 3-part compressor plan above — they're the wider "Im
 - [x] Smoke-retested the compressor's own crop/rotate/flip edit toolbar after extracting the shared icons — confirmed no regression
 - [x] Committed to git
 
+### Part 3 tools — Watermark + Metadata Remover ✅ done
+
+- [x] **Watermark** (`/watermark`) — batch tool: text watermark (custom text, font size, color, opacity) or logo/image watermark (upload a small logo, reused across the whole batch), a 9-position grid picker (corners, edges, center), a live preview overlaid via CSS on the first queued image so you see the result before processing anything, per-image apply/re-apply, individual download, Download All as ZIP, JPG/PNG/WebP/AVIF output with graceful fallback
+- [x] **Metadata Remover** (`/metadata`) — batch tool: scans every image with the `exifr` library and shows *exactly* what it found — camera make/model, date taken, GPS coordinates (highlighted in red as the most sensitive), plus a count of any other data points — before you remove anything. Stripping reuses the converter's canvas re-encode (pixel data never carries EXIF, so redrawing the image already removes everything — no new stripping logic needed). After stripping, **re-scans the actual output** and shows "✓ Verified clean" instead of just claiming it worked.
+- [x] Promoted both from "Coming Soon" to "Available" in `src/lib/tools.ts`; the Metadata Remover's route is `/metadata` (shorter than the registry's original `/metadata-remover`, per this round's spec)
+- [x] **New shared infrastructure** (used by these two tools, without touching the already-shipped compressor/converter hooks): `hooks/useMediaQueue.ts` is a generic version of the batch-queue mechanics that `useConvertQueue` established — `useWatermarkQueue` and `useMetadataQueue` are now ~5-line wrappers around it instead of two more ~200-line copy-pastes
+- [x] `exifr` added as a real dependency (not a dev/test-only install) — dynamically imported inside `utils/metadata.ts` so it doesn't bloat the main bundle, same lazy-load pattern already used for `heic2any`
+- [x] Verified detection against a **real EXIF-embedded test JPEG** (Canon EOS R5, a timestamp, and GPS coordinates ~San Francisco) — confirmed all three are correctly parsed and displayed, confirmed a metadata-free image correctly shows "No metadata detected", and confirmed the post-strip re-scan genuinely reports clean
+- [x] Fixed a real bug found in testing: switching Watermark's Text/Logo mode was tripping a React "controlled input becoming uncontrolled" warning — React was reusing the same DOM node across the two mode branches (both started with a `<div>` at the same position) and dropping the old input's `value` prop; fixed by giving each branch a distinct `key`
+- [x] Fixed a real cosmetic bug: camera name was rendering as "Canon Canon EOS R5" when the EXIF Model field already included the Make as a prefix; now checks for that before concatenating
+- [x] Verified at 360px: both tools' settings (including the 9-position grid and the live preview), batch list, and sticky bar have zero horizontal scroll and large tap targets
+- [x] Dark mode reviewed on both — no contrast issues
+- [x] Committed to git
+
 ### Still to build
 
-- [ ] Watermark — text and/or logo image watermark, position/opacity controls
-- [ ] Metadata Remover — strip EXIF/location without necessarily re-compressing
 - [ ] Image to PDF — combine one or more images into a single downloadable PDF
 
 ## Production hardening & growth
