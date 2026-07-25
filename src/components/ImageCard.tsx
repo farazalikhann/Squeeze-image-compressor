@@ -154,9 +154,16 @@ function StatusBadge({ status }: { status: QueueImage['status'] }) {
   }
   if (status === 'done') {
     return (
-      <div className="absolute right-1 top-1 flex h-5 w-5 items-center justify-center rounded-full bg-emerald-500 text-white shadow">
+      <div className="absolute right-1 top-1 flex h-5 w-5 animate-success-pop items-center justify-center rounded-full bg-emerald-500 text-white shadow">
         <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" className="h-3 w-3">
-          <path d="M5 13l4 4L19 7" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" />
+          <path
+            d="M5 13l4 4L19 7"
+            stroke="currentColor"
+            strokeWidth="3"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            className="animate-check-draw"
+          />
         </svg>
       </div>
     )

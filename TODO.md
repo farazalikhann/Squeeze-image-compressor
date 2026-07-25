@@ -49,11 +49,15 @@ Batch processing, crop/rotate/resize editing, batch rename, and ZIP download wer
 - [x] Download All as ZIP (`jszip` + `file-saver`)
 - [x] Friendly warning when a browser can't encode a format (already existed, reverified)
 - [x] Friendly, honest error state for corrupt/unreadable files — fixed two real bugs found while testing this: a permanently-errored file no longer shows "Reading…" forever, and the "Edit" button is now hidden for files that never successfully decoded (editing a file with no valid image data made no sense and showed a blank crop screen)
-- [x] **`DownloadBar` rebuilt mobile-first** — "Rename" and "Clear all" were previously hidden entirely below the `sm` breakpoint, meaning phone users had no way to reach them; they're now always visible, and Compress/Download buttons are full-width tap targets on small screens
+- [x] **`DownloadBar` rebuilt mobile-first** — "Rename" and "Clear all" were previously hidden entirely below the `sm` breakpoint, meaning phone users had no way to reach them at all; fixed
 - [x] Verified with a real batch (14 images + 1 corrupt file): per-file status, ZIP download, batch rename, and the 100-image cap rejection banner (tested with 105 files — 100 accepted, 5 correctly rejected) all work correctly
 - [x] Dark mode reviewed across the batch list, download bar, edit/crop toolbar, rename modal, and preview modal — no contrast issues found
 - [x] Verified at 360px: batch grid, download bar, edit/crop toolbar, rename modal — zero horizontal scroll, large tap targets throughout
 - [x] Committed to git
+
+**Extra UX touches (added after the Part 3 commit):**
+- [x] Success animation — the per-image checkmark badge now pops in with a bouncy scale/fade and the tick draws itself in right after (pure CSS keyframes in `index.css`, no animation library)
+- [x] Sticky bottom bar made properly compact on mobile — "Rename"/"Clear all" moved up into the queue header (they're secondary actions, don't need to be pinned) so the sticky bar is just selection + Compress + Download; measured bar height dropped from ~110px to **53px** on a 360px viewport, with more image cards visible above the fold and zero horizontal scroll
 
 ## Backlog (beyond the 3-part compressor build)
 

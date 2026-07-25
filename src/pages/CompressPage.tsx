@@ -107,10 +107,24 @@ export default function CompressPage() {
               <CompressionControls settings={settings} onChange={setSettings} />
             </div>
 
-            <div className="mb-4 flex items-center justify-between">
+            <div className="mb-4 flex items-center justify-between gap-3">
               <h2 className="text-sm font-semibold text-slate-700 dark:text-slate-300">
                 {images.length} image{images.length !== 1 ? 's' : ''} in queue
               </h2>
+              <div className="flex items-center gap-3">
+                <button
+                  onClick={() => setShowRename(true)}
+                  className="text-xs font-medium text-slate-500 hover:text-indigo-600 dark:text-slate-400 dark:hover:text-indigo-400 sm:text-sm"
+                >
+                  Rename
+                </button>
+                <button
+                  onClick={clearAll}
+                  className="text-xs font-medium text-slate-500 hover:text-red-600 dark:text-slate-400 dark:hover:text-red-400 sm:text-sm"
+                >
+                  Clear all
+                </button>
+              </div>
             </div>
 
             {isProcessing && (
@@ -160,8 +174,6 @@ export default function CompressPage() {
           onCompressSelected={handleCompressSelected}
           onDownloadAll={handleDownloadAll}
           onSelectAll={selectAll}
-          onClearAll={clearAll}
-          onBatchRename={() => setShowRename(true)}
         />
       )}
 
