@@ -4,12 +4,16 @@ import UploadZone from '../components/UploadZone'
 import WatermarkCard from '../components/WatermarkCard'
 import PreviewModal from '../components/PreviewModal'
 import DownloadBar from '../components/DownloadBar'
+import FaqSection from '../components/FaqSection'
 import { useWatermarkQueue } from '../hooks/useWatermarkQueue'
 import { downloadAllAsZip, downloadSingle } from '../utils/download'
 import { loadImageBitmap } from '../utils/imageLoader'
 import type { WatermarkPosition, WatermarkSettings } from '../utils/watermark'
 import type { OutputFormat } from '../types'
 import { FORMAT_LABELS } from '../types'
+import { SEO_CONTENT } from '../lib/seoContent'
+
+const seo = SEO_CONTENT.watermark
 
 const POSITIONS: WatermarkPosition[] = [
   'top-left',
@@ -125,10 +129,8 @@ export default function WatermarkPage() {
     <>
       <main className="mx-auto w-full max-w-5xl flex-1 px-4 py-8 sm:px-6">
         <div className="mb-6 text-center">
-          <h1 className="text-2xl font-bold text-slate-900 dark:text-white sm:text-3xl">Watermark</h1>
-          <p className="mx-auto mt-2 max-w-xl text-sm text-slate-500 dark:text-slate-400 sm:text-base">
-            Stamp a text or logo watermark onto up to 100 images at once. Everything happens on your device.
-          </p>
+          <h1 className="text-2xl font-bold text-slate-900 dark:text-white sm:text-3xl">{seo.h1}</h1>
+          <p className="mx-auto mt-2 max-w-xl text-sm text-slate-500 dark:text-slate-400 sm:text-base">{seo.intro}</p>
           <span className="mt-3 inline-flex items-center gap-1.5 rounded-full bg-emerald-50 px-3 py-1 text-xs font-medium text-emerald-700 ring-1 ring-emerald-200 dark:bg-emerald-500/10 dark:text-emerald-400 dark:ring-emerald-500/20">
             🔒 Processed locally in your browser. No uploads.
           </span>
@@ -402,6 +404,8 @@ export default function WatermarkPage() {
             </div>
           </>
         )}
+
+        <FaqSection items={seo.faqs} />
       </main>
 
       {images.length > 0 && (

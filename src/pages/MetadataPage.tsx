@@ -3,10 +3,14 @@ import UploadZone from '../components/UploadZone'
 import MetadataCard from '../components/MetadataCard'
 import PreviewModal from '../components/PreviewModal'
 import DownloadBar from '../components/DownloadBar'
+import FaqSection from '../components/FaqSection'
 import { useMetadataQueue } from '../hooks/useMetadataQueue'
 import { downloadAllAsZip, downloadSingle } from '../utils/download'
 import { readMetadata } from '../utils/metadata'
 import type { DetectedMetadata } from '../utils/metadata'
+import { SEO_CONTENT } from '../lib/seoContent'
+
+const seo = SEO_CONTENT['metadata-remover']
 
 export default function MetadataPage() {
   const {
@@ -73,12 +77,8 @@ export default function MetadataPage() {
     <>
       <main className="mx-auto w-full max-w-5xl flex-1 px-4 py-8 sm:px-6">
         <div className="mb-6 text-center">
-          <h1 className="text-2xl font-bold text-slate-900 dark:text-white sm:text-3xl">Metadata Remover</h1>
-          <p className="mx-auto mt-2 max-w-xl text-sm text-slate-500 dark:text-slate-400 sm:text-base">
-            Photos quietly carry your camera model, the exact time they were taken, and sometimes the GPS
-            coordinates of where you took them. See what's hiding in yours, then strip it before you share —
-            entirely on your device, nothing is ever uploaded to check.
-          </p>
+          <h1 className="text-2xl font-bold text-slate-900 dark:text-white sm:text-3xl">{seo.h1}</h1>
+          <p className="mx-auto mt-2 max-w-xl text-sm text-slate-500 dark:text-slate-400 sm:text-base">{seo.intro}</p>
           <span className="mt-3 inline-flex items-center gap-1.5 rounded-full bg-emerald-50 px-3 py-1 text-xs font-medium text-emerald-700 ring-1 ring-emerald-200 dark:bg-emerald-500/10 dark:text-emerald-400 dark:ring-emerald-500/20">
             🔒 Scanned and cleaned locally. Nothing leaves your browser.
           </span>
@@ -164,6 +164,8 @@ export default function MetadataPage() {
             </div>
           </>
         )}
+
+        <FaqSection items={seo.faqs} />
       </main>
 
       {images.length > 0 && (

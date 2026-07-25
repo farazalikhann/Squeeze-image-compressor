@@ -5,7 +5,12 @@ import ToolCard from '../components/ToolCard'
 import ToolSearchBar from '../components/ToolSearchBar'
 import CategoryChips from '../components/CategoryChips'
 import type { CategoryFilter } from '../components/CategoryChips'
+import Seo from '../components/Seo'
 import { CATEGORY_META, CATEGORY_ORDER, TOOLS } from '../lib/tools'
+import { SEO_CONTENT } from '../lib/seoContent'
+import { buildWebApplicationSchema } from '../lib/seo'
+
+const seo = SEO_CONTENT.home
 
 export default function HomePage() {
   const [query, setQuery] = useState('')
@@ -33,7 +38,17 @@ export default function HomePage() {
 
   return (
     <>
+      <Seo
+        title={seo.title}
+        description={seo.description}
+        path=""
+        jsonLd={buildWebApplicationSchema('Squeeze', seo.description, '')}
+      />
       <Hero />
+
+      <p className="mx-auto max-w-2xl px-4 pb-8 text-center text-sm text-slate-500 dark:text-slate-400 sm:text-base">
+        {seo.intro}
+      </p>
 
       <section className="mx-auto max-w-6xl px-4 pb-14 sm:pb-20">
         <ToolSearchBar value={query} onChange={setQuery} />

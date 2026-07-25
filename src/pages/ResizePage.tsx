@@ -1,12 +1,16 @@
 import { useRef, useState } from 'react'
 import UploadZone from '../components/UploadZone'
 import PreviewModal from '../components/PreviewModal'
+import FaqSection from '../components/FaqSection'
 import { formatBytes, formatDuration, stripExtension } from '../utils/format'
 import { getImageDimensions } from '../utils/imageLoader'
 import { resizeImage } from '../utils/resize'
 import { downloadSingle } from '../utils/download'
 import type { OutputFormat, QueueStatus } from '../types'
 import { FORMAT_EXT, FORMAT_LABELS } from '../types'
+import { SEO_CONTENT } from '../lib/seoContent'
+
+const seo = SEO_CONTENT.resize
 
 const PRESETS: { label: string; width: number; height: number }[] = [
   { label: '1920×1080', width: 1920, height: 1080 },
@@ -168,10 +172,8 @@ export default function ResizePage() {
     <>
       <main className="mx-auto w-full max-w-3xl flex-1 px-4 py-8 sm:px-6">
         <div className="mb-6 text-center">
-          <h1 className="text-2xl font-bold text-slate-900 dark:text-white sm:text-3xl">Image Resizer</h1>
-          <p className="mx-auto mt-2 max-w-xl text-sm text-slate-500 dark:text-slate-400 sm:text-base">
-            Resize an image to exact dimensions or a common preset. Everything happens on your device.
-          </p>
+          <h1 className="text-2xl font-bold text-slate-900 dark:text-white sm:text-3xl">{seo.h1}</h1>
+          <p className="mx-auto mt-2 max-w-xl text-sm text-slate-500 dark:text-slate-400 sm:text-base">{seo.intro}</p>
           <span className="mt-3 inline-flex items-center gap-1.5 rounded-full bg-emerald-50 px-3 py-1 text-xs font-medium text-emerald-700 ring-1 ring-emerald-200 dark:bg-emerald-500/10 dark:text-emerald-400 dark:ring-emerald-500/20">
             🔒 Processed locally in your browser. No uploads.
           </span>
@@ -405,6 +407,8 @@ export default function ResizePage() {
             </button>
           </div>
         )}
+
+        <FaqSection items={seo.faqs} />
       </main>
 
       {showPreview && previewImage && <PreviewModal image={previewImage} onClose={() => setShowPreview(false)} />}

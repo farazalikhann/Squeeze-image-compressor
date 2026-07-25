@@ -1,0 +1,4 @@
+User-agent: *
+Allow: /
+
+Sitemap: https://farazalikhann.github.io/Squeeze-image-compressor/sitemap.xml

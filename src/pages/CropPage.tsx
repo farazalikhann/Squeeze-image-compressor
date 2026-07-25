@@ -2,12 +2,16 @@ import { useRef, useState } from 'react'
 import Cropper from 'react-easy-crop'
 import type { Area, Point } from 'react-easy-crop'
 import UploadZone from '../components/UploadZone'
+import FaqSection from '../components/FaqSection'
 import { formatBytes, formatDuration, stripExtension } from '../utils/format'
 import { getImageDimensions } from '../utils/imageLoader'
 import { cropImage } from '../utils/crop'
 import { downloadSingle } from '../utils/download'
 import type { CropArea, OutputFormat } from '../types'
 import { FORMAT_EXT, FORMAT_LABELS } from '../types'
+import { SEO_CONTENT } from '../lib/seoContent'
+
+const seo = SEO_CONTENT.crop
 
 const ASPECTS: { label: string; value: number | undefined }[] = [
   { label: 'Free', value: undefined },
@@ -139,12 +143,11 @@ export default function CropPage() {
   }
 
   return (
-    <main className="mx-auto w-full max-w-3xl flex-1 px-4 py-8 sm:px-6">
+    <>
+      <main className="mx-auto w-full max-w-3xl flex-1 px-4 py-8 sm:px-6">
       <div className="mb-6 text-center">
-        <h1 className="text-2xl font-bold text-slate-900 dark:text-white sm:text-3xl">Crop Image</h1>
-        <p className="mx-auto mt-2 max-w-xl text-sm text-slate-500 dark:text-slate-400 sm:text-base">
-          Drag and resize the crop box, pick an aspect ratio, and export the exact area you need.
-        </p>
+        <h1 className="text-2xl font-bold text-slate-900 dark:text-white sm:text-3xl">{seo.h1}</h1>
+        <p className="mx-auto mt-2 max-w-xl text-sm text-slate-500 dark:text-slate-400 sm:text-base">{seo.intro}</p>
         <span className="mt-3 inline-flex items-center gap-1.5 rounded-full bg-emerald-50 px-3 py-1 text-xs font-medium text-emerald-700 ring-1 ring-emerald-200 dark:bg-emerald-500/10 dark:text-emerald-400 dark:ring-emerald-500/20">
           🔒 Processed locally in your browser. No uploads.
         </span>
@@ -360,7 +363,10 @@ export default function CropPage() {
           </button>
         </div>
       )}
+
+      <FaqSection items={seo.faqs} />
     </main>
+    </>
   )
 }
 
