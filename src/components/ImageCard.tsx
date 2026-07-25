@@ -1,5 +1,5 @@
 import type { QueueImage } from '../types'
-import { formatBytes, formatPercent } from '../utils/format'
+import { formatBytes, formatDuration, formatPercent } from '../utils/format'
 
 interface Props {
   image: QueueImage
@@ -82,6 +82,9 @@ export default function ImageCard({
                 </span>
                 {bytesSaved > 0 && (
                   <span className="text-slate-400 dark:text-slate-500">saved {formatBytes(bytesSaved)}</span>
+                )}
+                {image.processingTimeMs != null && (
+                  <span className="text-slate-400 dark:text-slate-500">⏱ {formatDuration(image.processingTimeMs)}</span>
                 )}
               </>
             )}

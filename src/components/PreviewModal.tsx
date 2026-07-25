@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import type { QueueImage } from '../types'
-import { formatBytes, formatPercent } from '../utils/format'
+import { formatBytes, formatDuration, formatPercent } from '../utils/format'
 
 interface Props {
   image: QueueImage
@@ -9,6 +9,7 @@ interface Props {
 
 export default function PreviewModal({ image, onClose }: Props) {
   const [sliderPos, setSliderPos] = useState(50)
+  const [viewMode, setViewMode] = useState<'slider' | 'side'>('slider')
   const hasResult = image.status === 'done' && !!image.processedUrl
 
   return (
@@ -30,69 +31,118 @@ export default function PreviewModal({ image, onClose }: Props) {
         </div>
 
         <div className="overflow-y-auto p-4 sm:p-5">
-          {hasResult ? (
-            <div
-              className="relative mx-auto max-h-[65vh] w-full select-none overflow-hidden rounded-xl bg-slate-100 dark:bg-slate-800"
-              style={{ aspectRatio: `${image.originalWidth} / ${image.originalHeight}` }}
-            >
-              <img src={image.processedUrl} alt="Compressed" className="absolute inset-0 h-full w-full object-contain" draggable={false} />
-              <div
-                className="absolute inset-0 overflow-hidden"
-                style={{ clipPath: `inset(0 ${100 - sliderPos}% 0 0)` }}
-              >
-                <img
-                  src={image.originalUrl}
-                  alt="Original"
-                  className="absolute inset-0 h-full w-full object-contain"
-                  draggable={false}
-                />
-              </div>
-
-              <div
-                className="pointer-events-none absolute top-0 bottom-0 w-0.5 bg-white shadow-lg"
-                style={{ left: `${sliderPos}%` }}
-              >
-                <div className="pointer-events-none absolute top-1/2 left-1/2 flex h-9 w-9 -translate-x-1/2 -translate-y-1/2 items-center justify-center rounded-full bg-white shadow-lg">
-                  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" className="h-4 w-4 text-slate-500">
-                    <path
-                      d="M8 7 4 12l4 5M16 7l4 5-4 5"
-                      stroke="currentColor"
-                      strokeWidth="2"
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                    />
-                  </svg>
-                </div>
-              </div>
-
-              <input
-                type="range"
-                min={0}
-                max={100}
-                value={sliderPos}
-                onChange={(e) => setSliderPos(Number(e.target.value))}
-                className="absolute inset-0 h-full w-full cursor-ew-resize opacity-0"
-                aria-label="Comparison slider"
-              />
-
-              <span className="pointer-events-none absolute left-2 top-2 rounded-md bg-black/60 px-2 py-1 text-xs font-medium text-white">
-                Before
-              </span>
-              <span className="pointer-events-none absolute right-2 top-2 rounded-md bg-black/60 px-2 py-1 text-xs font-medium text-white">
-                After
-              </span>
+          {hasResult && (
+            <div className="mb-3 flex justify-center gap-1.5">
+              <ViewToggleButton active={viewMode === 'slider'} onClick={() => setViewMode('slider')}>
+                Slider
+              </ViewToggleButton>
+              <ViewToggleButton active={viewMode === 'side'} onClick={() => setViewMode('side')}>
+                Side by side
+              </ViewToggleButton>
             </div>
+          )}
+
+          {hasResult ? (
+            viewMode === 'slider' ? (
+              <div
+                className="relative mx-auto max-h-[65vh] w-full select-none overflow-hidden rounded-xl bg-slate-100 dark:bg-slate-800"
+                style={{ aspectRatio: `${image.originalWidth} / ${image.originalHeight}` }}
+              >
+                <img src={image.processedUrl} alt="Compressed" className="absolute inset-0 h-full w-full object-contain" draggable={false} />
+                <div
+                  className="absolute inset-0 overflow-hidden"
+                  style={{ clipPath: `inset(0 ${100 - sliderPos}% 0 0)` }}
+                >
+                  <img
+                    src={image.originalUrl}
+                    alt="Original"
+                    className="absolute inset-0 h-full w-full object-contain"
+                    draggable={false}
+                  />
+                </div>
+
+                <div
+                  className="pointer-events-none absolute top-0 bottom-0 w-0.5 bg-white shadow-lg"
+                  style={{ left: `${sliderPos}%` }}
+                >
+                  <div className="pointer-events-none absolute top-1/2 left-1/2 flex h-9 w-9 -translate-x-1/2 -translate-y-1/2 items-center justify-center rounded-full bg-white shadow-lg">
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" className="h-4 w-4 text-slate-500">
+                      <path
+                        d="M8 7 4 12l4 5M16 7l4 5-4 5"
+                        stroke="currentColor"
+                        strokeWidth="2"
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                      />
+                    </svg>
+                  </div>
+                </div>
+
+                <input
+                  type="range"
+                  min={0}
+                  max={100}
+                  value={sliderPos}
+                  onChange={(e) => setSliderPos(Number(e.target.value))}
+                  className="absolute inset-0 h-full w-full cursor-ew-resize opacity-0"
+                  aria-label="Comparison slider"
+                />
+
+                <span className="pointer-events-none absolute left-2 top-2 rounded-md bg-black/60 px-2 py-1 text-xs font-medium text-white">
+                  Before
+                </span>
+                <span className="pointer-events-none absolute right-2 top-2 rounded-md bg-black/60 px-2 py-1 text-xs font-medium text-white">
+                  After
+                </span>
+              </div>
+            ) : (
+              <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+                <figure>
+                  <div
+                    className="mx-auto overflow-hidden rounded-xl bg-slate-100 dark:bg-slate-800"
+                    style={{ aspectRatio: `${image.originalWidth} / ${image.originalHeight}` }}
+                  >
+                    <img src={image.originalUrl} alt="Original" className="h-full w-full object-contain" />
+                  </div>
+                  <figcaption className="mt-1.5 text-center text-xs text-slate-500 dark:text-slate-400">
+                    Before · {formatBytes(image.originalSize)}
+                  </figcaption>
+                </figure>
+                <figure>
+                  <div
+                    className="mx-auto overflow-hidden rounded-xl bg-slate-100 dark:bg-slate-800"
+                    style={{ aspectRatio: `${image.originalWidth} / ${image.originalHeight}` }}
+                  >
+                    <img src={image.processedUrl} alt="Compressed" className="h-full w-full object-contain" />
+                  </div>
+                  <figcaption className="mt-1.5 text-center text-xs text-slate-500 dark:text-slate-400">
+                    After · {formatBytes(image.processedSize!)}
+                  </figcaption>
+                </figure>
+              </div>
+            )
           ) : (
             <div className="mx-auto max-h-[65vh] overflow-hidden rounded-xl bg-slate-100 dark:bg-slate-800">
               <img src={image.originalUrl} alt={image.fileName} className="max-h-[65vh] w-full object-contain" />
             </div>
           )}
 
-          <div className="mt-4 grid grid-cols-2 gap-3 sm:grid-cols-4">
+          <div className="mt-4 grid grid-cols-2 gap-3 sm:grid-cols-5">
             <Stat label="Original size" value={formatBytes(image.originalSize)} />
             <Stat
               label="Compressed size"
               value={hasResult ? formatBytes(image.processedSize!) : '—'}
+              highlight={hasResult}
+            />
+            <Stat
+              label="Saved"
+              value={hasResult ? `${formatPercent(image.originalSize, image.processedSize!)}%` : '—'}
+              highlight={hasResult}
+              positive
+            />
+            <Stat
+              label="Time taken"
+              value={hasResult && image.processingTimeMs != null ? formatDuration(image.processingTimeMs) : '—'}
               highlight={hasResult}
             />
             <Stat
@@ -103,16 +153,34 @@ export default function PreviewModal({ image, onClose }: Props) {
                   : `${image.originalWidth}×${image.originalHeight}`
               }
             />
-            <Stat
-              label="Saved"
-              value={hasResult ? `${formatPercent(image.originalSize, image.processedSize!)}%` : '—'}
-              highlight={hasResult}
-              positive
-            />
           </div>
         </div>
       </div>
     </div>
+  )
+}
+
+function ViewToggleButton({
+  active,
+  onClick,
+  children,
+}: {
+  active: boolean
+  onClick: () => void
+  children: React.ReactNode
+}) {
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      className={`min-h-9 rounded-lg border px-3.5 text-sm font-medium transition-colors ${
+        active
+          ? 'border-indigo-500 bg-indigo-600 text-white'
+          : 'border-slate-200 text-slate-600 hover:border-indigo-300 dark:border-slate-700 dark:text-slate-300'
+      }`}
+    >
+      {children}
+    </button>
   )
 }
 

@@ -68,6 +68,18 @@ export default function CompressPage() {
           <span className="mt-3 inline-flex items-center gap-1.5 rounded-full bg-emerald-50 px-3 py-1 text-xs font-medium text-emerald-700 ring-1 ring-emerald-200 dark:bg-emerald-500/10 dark:text-emerald-400 dark:ring-emerald-500/20">
             🔒 Processed locally in your browser. No uploads.
           </span>
+
+          <div className="mt-3 flex flex-wrap items-center justify-center gap-1.5">
+            <span className="text-xs text-slate-400 dark:text-slate-500">Supports</span>
+            {['JPG', 'PNG', 'WebP', 'AVIF'].map((fmt) => (
+              <span
+                key={fmt}
+                className="rounded-md bg-slate-100 px-2 py-0.5 text-xs font-medium text-slate-600 dark:bg-slate-800 dark:text-slate-300"
+              >
+                {fmt}
+              </span>
+            ))}
+          </div>
         </div>
 
         {rejectedFiles.length > 0 && (

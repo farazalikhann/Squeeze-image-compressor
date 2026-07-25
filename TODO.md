@@ -20,8 +20,28 @@ Tracks all planned work across the 3 build parts. Update this file as parts prog
 - [x] `.gitignore` for `node_modules`, `dist`, etc.
 - [x] Committed to git
 
-## Part 2 — Build the tools
+## Part 2 — Full Image Compressor ✅ done
 
+- [x] Smart Compression (auto balance)
+- [x] Maximum Compression (smallest size)
+- [x] Custom Quality slider (1–100)
+- [x] Lossless (PNG/WebP) and Lossy (JPG/WebP/AVIF) modes
+- [x] **Target Size option** — preset buttons (20 KB / 50 KB / 100 KB) + custom KB input, quality binary-search to hit the target (`binarySearchEncode` in `compress.ts`), warning shown when the target can't be reached
+- [x] Input & output formats: JPG, PNG, WebP, AVIF, shown as badges on the compressor page
+- [x] Graceful fallback if the browser can't encode AVIF/WebP (`formatSupport.ts`, already existed, reverified)
+- [x] Before vs after comparison — both a draggable slider view **and** a side-by-side view (toggle in `PreviewModal.tsx`)
+- [x] Compression Stats Card per image — Original Size, Compressed Size, % Saved, **Time Taken** (new)
+- [x] Upload: drag & drop, click to browse, mobile file picker (already existed, reverified end-to-end)
+- [x] Single image flow verified working end-to-end (upload → compress → download)
+- [x] Download single compressed image
+- [x] Mobile-first pass: target-size controls, stats card, and both comparison views verified at 360px with zero horizontal scroll
+- [x] Committed to git
+
+Batch processing, crop/rotate/resize editing, batch rename, and ZIP download were already built in the prior session and continue to work unchanged — verified they still function after this pass, not re-listed as new here.
+
+## Part 3 — Remaining tools, hardening & growth
+
+**Other tools:**
 - [ ] Image Resizer — exact dimensions or percentage scale, aspect-lock option
 - [ ] Image Converter — JPG ⇄ PNG ⇄ WebP ⇄ AVIF, with capability fallback (reuse `formatSupport.ts` logic)
 - [ ] Crop — standalone crop tool (reuse `react-easy-crop` integration from the compressor's edit toolbar)
@@ -31,8 +51,7 @@ Tracks all planned work across the 3 build parts. Update this file as parts prog
 - [ ] Image to PDF — combine one or more images into a single downloadable PDF
 - [ ] Promote each tool from "Coming Soon" to "Available" in `src/lib/tools.ts` as it ships
 
-## Part 3 — Production hardening & growth
-
+**Production hardening & growth:**
 - [ ] Unit tests for core image-processing logic (`compress.ts` binary-search/quality targeting, `canvasOps.ts`)
 - [ ] Error boundary so a render crash doesn't blank the whole app
 - [ ] PWA support — manifest + service worker, installable/offline-capable

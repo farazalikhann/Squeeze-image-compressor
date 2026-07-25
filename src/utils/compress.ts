@@ -10,6 +10,8 @@ export interface CompressResult {
   height: number
   format: OutputFormat
   formatFellBack: boolean
+  timeMs: number
+  targetSizeReached?: boolean
 }
 
 const LOSSLESS_FORMATS: OutputFormat[] = ['image/png', 'image/webp']
@@ -30,7 +32,7 @@ function guessOriginalFormat(file: File): OutputFormat {
 
 function coerceFormatForMode(format: OutputFormat, mode: CompressionMode): OutputFormat {
   if (mode === 'lossless' && !LOSSLESS_FORMATS.includes(format)) return 'image/png'
-  if (mode === 'lossy' && !LOSSY_FORMATS.includes(format)) return 'image/jpeg'
+  if ((mode === 'lossy' || mode === 'target') && !LOSSY_FORMATS.includes(format)) return 'image/jpeg'
   return format
 }
 
@@ -51,26 +53,34 @@ async function resolveTargetFormat(
   return { format: fallbackOk ? fallback : 'image/jpeg', fellBack: true }
 }
 
-/** Binary-searches the quality parameter to land at or under a target byte size,
- *  used for Smart/Max modes where we want the library-free formats (AVIF) to
- *  behave the same way browser-image-compression does for JPEG/WebP/PNG. */
+interface BinarySearchResult {
+  blob: Blob
+  /** false when even the lowest quality setting couldn't get under targetBytes */
+  reached: boolean
+}
+
+/** Binary-searches the quality parameter to land at or under a target byte size.
+ *  Used for Smart/Max modes so the library-free formats (AVIF) behave like
+ *  browser-image-compression does for JPEG/WebP/PNG, and for the explicit
+ *  "Target size" mode where hitting the budget is the whole point. */
 async function binarySearchEncode(
   canvas: HTMLCanvasElement,
   mime: string,
   targetBytes: number,
   minQ: number,
   maxQ: number,
-): Promise<Blob> {
+  iterations = 6,
+): Promise<BinarySearchResult> {
   const highBlob = await canvasToBlob(canvas, mime, maxQ)
-  if (highBlob.size <= targetBytes) return highBlob
+  if (highBlob.size <= targetBytes) return { blob: highBlob, reached: true }
 
   const lowBlob = await canvasToBlob(canvas, mime, minQ)
-  if (lowBlob.size >= targetBytes) return lowBlob
+  if (lowBlob.size > targetBytes) return { blob: lowBlob, reached: false }
 
   let lo = minQ
   let hi = maxQ
   let best = lowBlob
-  for (let i = 0; i < 6; i++) {
+  for (let i = 0; i < iterations; i++) {
     const mid = (lo + hi) / 2
     const blob = await canvasToBlob(canvas, mime, mid)
     if (blob.size <= targetBytes) {
@@ -80,7 +90,7 @@ async function binarySearchEncode(
       hi = mid
     }
   }
-  return best
+  return { blob: best, reached: true }
 }
 
 async function encodeAvif(
@@ -89,10 +99,10 @@ async function encodeAvif(
   originalSize: number,
 ): Promise<Blob> {
   if (settings.mode === 'smart') {
-    return binarySearchEncode(canvas, 'image/avif', originalSize * 0.5, 0.2, 0.85)
+    return (await binarySearchEncode(canvas, 'image/avif', originalSize * 0.5, 0.2, 0.85)).blob
   }
   if (settings.mode === 'max') {
-    return binarySearchEncode(canvas, 'image/avif', originalSize * 0.25, 0.1, 0.6)
+    return (await binarySearchEncode(canvas, 'image/avif', originalSize * 0.25, 0.1, 0.6)).blob
   }
   return canvasToBlob(canvas, 'image/avif', settings.quality / 100)
 }
@@ -124,14 +134,21 @@ export async function compressImage(
   edits: ImageEdits,
   settings: CompressionSettings,
 ): Promise<CompressResult> {
+  const startedAt = performance.now()
   const { bitmap } = await loadImageBitmap(file)
   try {
     const canvas = renderEditedCanvas(bitmap, edits)
     const { format, fellBack } = await resolveTargetFormat(file, settings, edits.formatOverride)
 
     let blob: Blob
+    let targetSizeReached: boolean | undefined
 
-    if (format === 'image/png') {
+    if (settings.mode === 'target') {
+      const targetBytes = Math.max(1024, Math.round(settings.targetSizeKB * 1024))
+      const result = await binarySearchEncode(canvas, format, targetBytes, 0.01, 1, 10)
+      blob = result.blob
+      targetSizeReached = result.reached
+    } else if (format === 'image/png') {
       blob = await canvasToBlob(canvas, format)
     } else if (settings.mode === 'lossless') {
       blob = await canvasToBlob(canvas, format, 1)
@@ -143,7 +160,15 @@ export async function compressImage(
       blob = await canvasToBlob(canvas, format, settings.quality / 100)
     }
 
-    return { blob, width: canvas.width, height: canvas.height, format, formatFellBack: fellBack }
+    return {
+      blob,
+      width: canvas.width,
+      height: canvas.height,
+      format,
+      formatFellBack: fellBack,
+      timeMs: Math.round(performance.now() - startedAt),
+      targetSizeReached,
+    }
   } finally {
     bitmap.close()
   }

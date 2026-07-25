@@ -14,6 +14,12 @@ export function formatPercent(original: number, compressed: number): number {
   return Math.max(0, Math.round(saved * 10) / 10)
 }
 
+export function formatDuration(ms: number): string {
+  if (!Number.isFinite(ms) || ms < 0) return '0ms'
+  if (ms < 1000) return `${Math.round(ms)}ms`
+  return `${(ms / 1000).toFixed(1)}s`
+}
+
 export function genId(): string {
   if (typeof crypto !== 'undefined' && 'randomUUID' in crypto) {
     return crypto.randomUUID()

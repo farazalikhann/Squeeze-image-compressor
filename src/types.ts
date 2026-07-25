@@ -1,4 +1,4 @@
-export type CompressionMode = 'smart' | 'max' | 'custom' | 'lossless' | 'lossy'
+export type CompressionMode = 'smart' | 'max' | 'custom' | 'lossless' | 'lossy' | 'target'
 
 export type OutputFormat = 'image/jpeg' | 'image/png' | 'image/webp' | 'image/avif'
 
@@ -32,6 +32,7 @@ export interface CompressionSettings {
   mode: CompressionMode
   quality: number // 1-100, used by custom & lossy modes
   outputFormat: OutputFormat | 'keep'
+  targetSizeKB: number // used by target mode
 }
 
 export interface QueueImage {
@@ -51,6 +52,7 @@ export interface QueueImage {
   processedWidth?: number
   processedHeight?: number
   processedFormat?: OutputFormat
+  processingTimeMs?: number
   edits: ImageEdits
   selected: boolean
 }
@@ -69,6 +71,7 @@ export const DEFAULT_SETTINGS: CompressionSettings = {
   mode: 'smart',
   quality: 80,
   outputFormat: 'keep',
+  targetSizeKB: 100,
 }
 
 export const FORMAT_LABELS: Record<OutputFormat, string> = {

@@ -164,6 +164,17 @@ export function useImageQueue() {
       try {
         const result = await compressImage(target.file, edits, settings)
         const url = URL.createObjectURL(result.blob)
+
+        const warnings: string[] = []
+        if (result.formatFellBack) {
+          warnings.push(
+            `Your browser can't encode this format here, so we used ${result.format.replace('image/', '').toUpperCase()} instead.`,
+          )
+        }
+        if (result.targetSizeReached === false) {
+          warnings.push("Couldn't quite reach the target size — this is the smallest we could get.")
+        }
+
         setImages((prev) =>
           prev.map((img) => {
             if (img.id !== id) return img
@@ -179,11 +190,10 @@ export function useImageQueue() {
               processedWidth: result.width,
               processedHeight: result.height,
               processedFormat: result.format,
+              processingTimeMs: result.timeMs,
               fileName: `${base}.${ext}`,
               progress: 100,
-              errorMessage: result.formatFellBack
-                ? `Your browser can't encode this format here, so we used ${result.format.replace('image/', '').toUpperCase()} instead.`
-                : undefined,
+              errorMessage: warnings.length > 0 ? warnings.join(' ') : undefined,
             }
           }),
         )

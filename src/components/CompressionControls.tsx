@@ -13,7 +13,10 @@ const MODES: ModeInfo[] = [
   { id: 'custom', label: 'Custom', description: 'Set your own quality level' },
   { id: 'lossless', label: 'Lossless', description: 'Zero quality loss — PNG or WebP' },
   { id: 'lossy', label: 'Lossy', description: 'Quality-controlled — JPG, WebP or AVIF' },
+  { id: 'target', label: 'Target Size', description: 'Hit an exact file size — great for forms & email limits' },
 ]
+
+const TARGET_PRESETS_KB = [20, 50, 100]
 
 const ALL_FORMATS: OutputFormat[] = ['image/jpeg', 'image/png', 'image/webp', 'image/avif']
 const LOSSLESS_FORMATS: OutputFormat[] = ['image/png', 'image/webp']
@@ -21,7 +24,7 @@ const LOSSY_FORMATS: OutputFormat[] = ['image/jpeg', 'image/webp', 'image/avif']
 
 function formatsForMode(mode: CompressionMode): OutputFormat[] {
   if (mode === 'lossless') return LOSSLESS_FORMATS
-  if (mode === 'lossy') return LOSSY_FORMATS
+  if (mode === 'lossy' || mode === 'target') return LOSSY_FORMATS
   return ALL_FORMATS
 }
 
@@ -33,6 +36,7 @@ interface Props {
 export default function CompressionControls({ settings, onChange }: Props) {
   const availableFormats = formatsForMode(settings.mode)
   const showQuality = settings.mode === 'custom' || settings.mode === 'lossy'
+  const showTargetSize = settings.mode === 'target'
   const showKeepOption = settings.mode === 'smart' || settings.mode === 'max' || settings.mode === 'custom'
 
   const setMode = (mode: CompressionMode) => {
@@ -40,7 +44,7 @@ export default function CompressionControls({ settings, onChange }: Props) {
     const nextFormat =
       settings.outputFormat !== 'keep' && !formats.includes(settings.outputFormat)
         ? formats[0]
-        : settings.outputFormat === 'keep' && (mode === 'lossless' || mode === 'lossy')
+        : settings.outputFormat === 'keep' && (mode === 'lossless' || mode === 'lossy' || mode === 'target')
           ? formats[0]
           : settings.outputFormat
     onChange({ ...settings, mode, outputFormat: nextFormat })
@@ -50,7 +54,7 @@ export default function CompressionControls({ settings, onChange }: Props) {
     <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm dark:border-slate-800 dark:bg-slate-900">
       <h3 className="text-sm font-semibold text-slate-800 dark:text-slate-100">Compression mode</h3>
 
-      <div className="mt-3 grid grid-cols-2 gap-2 sm:grid-cols-5">
+      <div className="mt-3 grid grid-cols-2 gap-2 sm:grid-cols-3 lg:grid-cols-6">
         {MODES.map((m) => (
           <button
             key={m.id}
@@ -95,6 +99,46 @@ export default function CompressionControls({ settings, onChange }: Props) {
             <span>Smaller file</span>
             <span>Higher quality</span>
           </div>
+        </div>
+      )}
+
+      {showTargetSize && (
+        <div className="mt-5">
+          <label className="text-sm font-medium text-slate-700 dark:text-slate-300">Target size</label>
+          <div className="mt-2 flex flex-wrap items-center gap-2">
+            {TARGET_PRESETS_KB.map((kb) => (
+              <button
+                key={kb}
+                type="button"
+                onClick={() => onChange({ ...settings, targetSizeKB: kb })}
+                className={`min-h-10 rounded-lg border px-3.5 text-sm font-medium transition-colors ${
+                  settings.targetSizeKB === kb
+                    ? 'border-indigo-500 bg-indigo-600 text-white'
+                    : 'border-slate-200 bg-slate-50 text-slate-600 hover:border-indigo-300 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-300'
+                }`}
+              >
+                {kb} KB
+              </button>
+            ))}
+            <div className="flex min-h-10 items-center gap-1.5 rounded-lg border border-slate-200 bg-slate-50 px-3 dark:border-slate-700 dark:bg-slate-800">
+              <input
+                type="number"
+                min={1}
+                inputMode="numeric"
+                value={settings.targetSizeKB}
+                onChange={(e) =>
+                  onChange({ ...settings, targetSizeKB: Math.max(1, Math.round(Number(e.target.value) || 1)) })
+                }
+                className="w-16 bg-transparent text-sm text-slate-800 focus:outline-none dark:text-slate-100"
+                aria-label="Custom target size in kilobytes"
+              />
+              <span className="text-xs text-slate-500 dark:text-slate-400">KB</span>
+            </div>
+          </div>
+          <p className="mt-2 text-xs text-slate-500 dark:text-slate-400">
+            We'll binary-search the quality level to land at or under {settings.targetSizeKB} KB. If that's not
+            possible, you'll see a warning with the smallest size we could reach.
+          </p>
         </div>
       )}
 
