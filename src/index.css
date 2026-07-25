@@ -24,6 +24,14 @@ body {
   border-radius: 9999px;
 }
 
+.scrollbar-none {
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+.scrollbar-none::-webkit-scrollbar {
+  display: none;
+}
+
 .range-slider {
   -webkit-appearance: none;
   appearance: none;

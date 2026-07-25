@@ -6,6 +6,22 @@ Tracks all planned work for the platform. Update this file as work progresses.
 
 Image Compressor, Image Resizer, Image Converter, Crop, Rotate & Flip, Watermark, Metadata Remover, and Image to PDF — every tool on the homepage grid is now "Available". Nothing on the site says "Coming Soon" anymore (the underlying `coming-soon` status and `ComingSoonPage` template are still there, ready for whenever a 9th tool gets planned — they're just not pointing at anything right now).
 
+## UI Redesign — search, categories, professional homepage ✅ done
+
+- [x] **Tool registry gained categories** — `src/lib/tools.ts` now has a `ToolCategory` (`compress` / `convert` / `edit` / `privacy`) per tool plus `CATEGORY_META` (label, description, accent color) driving both the homepage sections and the filter chips from one source of truth: Compress → Image Compressor; Convert → Image Converter, Image to PDF; Edit → Image Resizer, Crop, Rotate, Watermark; Privacy → Metadata Remover
+- [x] **Live search** (`ToolSearchBar.tsx`) — filters by name and description as you type, with a clear (✕) button
+- [x] **Category filter chips** (`CategoryChips.tsx`) — horizontally-scrollable pill row (All tools/Compress/Convert/Edit/Privacy); selecting one filters the grid the same way a search does
+- [x] **Homepage reorganized into sections by category**, each with a title, one-line description, and a working "See all →" link (jumps into the filtered single-category view — there's no pagination to reveal since categories are small, but it's a real, functional filter action, not decorative) — sections only show when neither search nor a category filter is active; searching or picking a chip collapses to a single filtered grid
+- [x] **Empty state** — a distinct "No tools match ..." message with a one-click "Clear filters" reset when a search/category combination matches nothing
+- [x] **Redesigned `ToolCard.tsx`** — icon in a category-colored rounded square, name, description, and a small "🔒 On-device" badge on every card (replacing the old "Available" pill, since all 8 tools are active now anyway)
+- [x] **Trimmed `Hero.tsx`** to a single bold heading + one-line subheading (dropped the longer paragraph and the 3-badge row) so the search bar appears higher on the page
+- [x] **Navbar gained "Home" and "Recent"** — "Home" is a text link (visible from `sm:` up; the logo already covers this on mobile, so it's not duplicated there) that highlights when you're on the homepage; "Recent" is a new icon-button dropdown showing the last 5 tools visited, persisted in `localStorage` (`hooks/useRecentTools.ts`), most-recent-first, with its own empty state before you've used anything. Opening either the "Tools" or "Recent" dropdown closes the other.
+- [x] Verified the search/chip/section/empty-state logic actually works (typed "crop" → 1 result; picked the "Edit" chip → 4 results; searched gibberish → empty state; "Clear filters" → back to all 8), verified "Recent" starts empty and correctly lists tools after visiting them, most-recent-first, and verified opening one dropdown closes the other
+- [x] Smoke-tested all 8 existing tool routes after the redesign — every one still renders its upload zone and works exactly as before; **no tool functionality, route, or path changed** — only the homepage, hero, tool card, and navbar were touched
+- [x] Verified at 360px: search bar, chips (scroll horizontally within their own row, not the page), and stacked cards all have zero horizontal scroll on the page itself
+- [x] Dark mode reviewed on the redesigned homepage and navbar dropdowns — clean, spacious, consistent with the rest of the site
+- [x] Committed to git
+
 ## Part 1 — Foundation (shell, navigation, homepage) ✅ done
 
 - [x] Project scaffold with React Router set up (`BrowserRouter`, routes in `App.tsx`)

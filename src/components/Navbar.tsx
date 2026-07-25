@@ -1,28 +1,35 @@
 import { useEffect, useRef, useState } from 'react'
 import { Link, useLocation } from 'react-router-dom'
 import { TOOLS } from '../lib/tools'
+import { resolveRecentTools, useRecentTools } from '../hooks/useRecentTools'
 
 interface Props {
   isDark: boolean
   onToggleDark: () => void
 }
 
+type OpenMenu = 'tools' | 'recent' | null
+
 export default function Navbar({ isDark, onToggleDark }: Props) {
-  const [menuOpen, setMenuOpen] = useState(false)
-  const menuRef = useRef<HTMLDivElement>(null)
+  const [openMenu, setOpenMenu] = useState<OpenMenu>(null)
+  const toolsRef = useRef<HTMLDivElement>(null)
+  const recentRef = useRef<HTMLDivElement>(null)
   const location = useLocation()
+  const { recentIds, recordVisit } = useRecentTools()
 
   useEffect(() => {
-    setMenuOpen(false)
-  }, [location.pathname])
+    recordVisit(location.pathname)
+    setOpenMenu(null)
+  }, [location.pathname, recordVisit])
 
   useEffect(() => {
-    if (!menuOpen) return
+    if (!openMenu) return
     const onPointerDown = (e: MouseEvent) => {
-      if (menuRef.current && !menuRef.current.contains(e.target as Node)) setMenuOpen(false)
+      const ref = openMenu === 'tools' ? toolsRef : recentRef
+      if (ref.current && !ref.current.contains(e.target as Node)) setOpenMenu(null)
     }
     const onKeyDown = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') setMenuOpen(false)
+      if (e.key === 'Escape') setOpenMenu(null)
     }
     document.addEventListener('mousedown', onPointerDown)
     document.addEventListener('keydown', onKeyDown)
@@ -30,7 +37,9 @@ export default function Navbar({ isDark, onToggleDark }: Props) {
       document.removeEventListener('mousedown', onPointerDown)
       document.removeEventListener('keydown', onKeyDown)
     }
-  }, [menuOpen])
+  }, [openMenu])
+
+  const recentTools = resolveRecentTools(recentIds, TOOLS)
 
   return (
     <header className="sticky top-0 z-40 border-b border-slate-200/80 bg-white/80 backdrop-blur-md dark:border-slate-800/80 dark:bg-slate-950/80">
@@ -51,20 +60,31 @@ export default function Navbar({ isDark, onToggleDark }: Props) {
         </Link>
 
         <div className="flex shrink-0 items-center gap-2">
-          <div className="relative" ref={menuRef}>
+          <Link
+            to="/"
+            className={`hidden h-11 items-center rounded-lg px-3 text-sm font-medium transition-colors sm:flex ${
+              location.pathname === '/'
+                ? 'text-indigo-600 dark:text-indigo-400'
+                : 'text-slate-600 hover:bg-slate-100 dark:text-slate-300 dark:hover:bg-slate-800'
+            }`}
+          >
+            Home
+          </Link>
+
+          <div className="relative" ref={toolsRef}>
             <button
               type="button"
-              onClick={() => setMenuOpen((o) => !o)}
-              aria-expanded={menuOpen}
+              onClick={() => setOpenMenu((m) => (m === 'tools' ? null : 'tools'))}
+              aria-expanded={openMenu === 'tools'}
               aria-haspopup="menu"
               className="flex h-11 items-center gap-1.5 rounded-lg border border-slate-200 px-3 text-sm font-medium text-slate-600 transition-colors hover:bg-slate-100 dark:border-slate-700 dark:text-slate-300 dark:hover:bg-slate-800"
             >
               <GridIcon />
               <span>Tools</span>
-              <ChevronIcon open={menuOpen} />
+              <ChevronIcon open={openMenu === 'tools'} />
             </button>
 
-            {menuOpen && (
+            {openMenu === 'tools' && (
               <div
                 role="menu"
                 className="fixed inset-x-3 top-[3.75rem] z-50 max-h-[75vh] overflow-y-auto rounded-2xl border border-slate-200 bg-white p-1.5 shadow-xl dark:border-slate-800 dark:bg-slate-900 sm:absolute sm:inset-x-auto sm:top-auto sm:right-0 sm:mt-2 sm:w-80"
@@ -102,6 +122,49 @@ export default function Navbar({ isDark, onToggleDark }: Props) {
             )}
           </div>
 
+          <div className="relative" ref={recentRef}>
+            <button
+              type="button"
+              onClick={() => setOpenMenu((m) => (m === 'recent' ? null : 'recent'))}
+              aria-expanded={openMenu === 'recent'}
+              aria-haspopup="menu"
+              aria-label="Recently used tools"
+              className="flex h-11 w-11 shrink-0 items-center justify-center rounded-lg border border-slate-200 text-slate-500 transition-colors hover:bg-slate-100 dark:border-slate-700 dark:text-slate-400 dark:hover:bg-slate-800"
+            >
+              <ClockIcon />
+            </button>
+
+            {openMenu === 'recent' && (
+              <div
+                role="menu"
+                className="fixed inset-x-3 top-[3.75rem] z-50 max-h-[75vh] overflow-y-auto rounded-2xl border border-slate-200 bg-white p-1.5 shadow-xl dark:border-slate-800 dark:bg-slate-900 sm:absolute sm:inset-x-auto sm:top-auto sm:right-0 sm:mt-2 sm:w-72"
+              >
+                <p className="px-3 py-2 text-xs font-semibold uppercase tracking-wide text-slate-400 dark:text-slate-500">
+                  Recently used
+                </p>
+                {recentTools.length === 0 ? (
+                  <p className="px-3 py-6 text-center text-sm text-slate-500 dark:text-slate-400">
+                    No recent tools yet — open one to see it here.
+                  </p>
+                ) : (
+                  recentTools.map((tool) => (
+                    <Link
+                      key={tool.id}
+                      to={tool.path}
+                      role="menuitem"
+                      className="flex min-h-12 items-center gap-3 rounded-xl px-3 py-2 text-sm text-slate-700 transition-colors hover:bg-slate-50 dark:text-slate-200 dark:hover:bg-slate-800"
+                    >
+                      <span className="text-lg" aria-hidden>
+                        {tool.icon}
+                      </span>
+                      <span className="flex-1 font-medium">{tool.name}</span>
+                    </Link>
+                  ))
+                )}
+              </div>
+            )}
+          </div>
+
           <button
             onClick={onToggleDark}
             aria-label="Toggle dark mode"
@@ -135,6 +198,14 @@ function ChevronIcon({ open }: { open: boolean }) {
       aria-hidden
     >
       <path d="m6 9 6 6 6-6" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+    </svg>
+  )
+}
+function ClockIcon() {
+  return (
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" className="h-4.5 w-4.5" aria-hidden>
+      <circle cx="12" cy="12" r="8.5" stroke="currentColor" strokeWidth="1.8" />
+      <path d="M12 7.5V12l3 2" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" />
     </svg>
   )
 }
