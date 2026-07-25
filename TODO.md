@@ -74,10 +74,20 @@ These weren't part of the 3-part compressor plan above — they're the wider "Im
 - [x] **Shared infrastructure extracted to avoid duplicating the compressor's logic**: `utils/concurrency.ts` (`runWithConcurrency`), `utils/fileValidation.ts` (`MAX_FILES`, `isAcceptedImageFile`), `utils/resolveFormat.ts` (format-fallback resolution), a generalized `DownloadBar` (tool-agnostic action label instead of hardcoded "Compress"), a generalized `PreviewModal` (structural `PreviewableImage` type instead of the compressor-specific `QueueImage`), and a loosened `download.ts` (`Downloadable` type). `useImageQueue.ts` (the compressor's hook) was refactored to import the shared validation/concurrency utilities instead of duplicating them, and was smoke-retested afterward to confirm no regression.
 - [x] Committed to git
 
+### Part 2 tools — Crop + Rotate/Flip ✅ done
+
+- [x] **Crop Image** (`/crop`) — single-image tool: interactive drag/resize crop box via `react-easy-crop` (the same library the compressor's edit toolbar already uses), aspect ratio presets (Free, 1:1, 4:3, 16:9, 3:2), live crop-dimensions badge that updates as you drag, zoom slider, side-by-side before/after preview, stats (new dimensions, new size, format, time taken), download, JPG/PNG/WebP/AVIF output with graceful fallback
+- [x] **Rotate & Flip** (`/rotate`) — single-image tool: rotate left/right 90°, rotate 180°, flip horizontal, flip vertical, instant CSS-transform live preview (no reprocessing needed just to see the change), an explicit "Apply changes" step that bakes the transform into real pixel data via canvas, dimensions readout that shows the width/height swap on 90°/270° rotation, before/after result with stats, download
+- [x] Touch-friendly crop box verified — `touch-action: none` set on the cropper container so mobile browsers don't hijack the drag gesture with page-scroll; confirmed via computed style in a touch-emulated browser context
+- [x] Promoted both from "Coming Soon" to "Available" in `src/lib/tools.ts`
+- [x] **Reused rather than duplicated**: `utils/crop.ts` and `utils/rotateFlip.ts` are thin wrappers around the compressor's existing `renderEditedCanvas` (already handles crop/rotate/flip math) plus the same format-resolution/encode helpers used by every other tool — no new canvas math was written. The four rotate/flip icons were extracted out of `EditToolbar.tsx` into a shared `RotateFlipIcons.tsx` so the compressor and the new Rotate page render the exact same icons instead of duplicated SVGs.
+- [x] Verified at 360px: both tools' upload, controls (including the interactive cropper), and result views have zero horizontal scroll and large tap targets
+- [x] Dark mode reviewed on both — matches the existing theme
+- [x] Smoke-retested the compressor's own crop/rotate/flip edit toolbar after extracting the shared icons — confirmed no regression
+- [x] Committed to git
+
 ### Still to build
 
-- [ ] Crop — standalone crop tool (reuse `react-easy-crop` integration from the compressor's edit toolbar)
-- [ ] Rotate — standalone rotate/flip tool
 - [ ] Watermark — text and/or logo image watermark, position/opacity controls
 - [ ] Metadata Remover — strip EXIF/location without necessarily re-compressing
 - [ ] Image to PDF — combine one or more images into a single downloadable PDF
