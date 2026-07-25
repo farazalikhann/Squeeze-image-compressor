@@ -1,6 +1,10 @@
 # Squeeze — Image Tools Platform: TODO
 
-Tracks all planned work across the 3 build parts. Update this file as parts progress.
+Tracks all planned work for the platform. Update this file as work progresses.
+
+## 🎉 All 8 tools are live
+
+Image Compressor, Image Resizer, Image Converter, Crop, Rotate & Flip, Watermark, Metadata Remover, and Image to PDF — every tool on the homepage grid is now "Available". Nothing on the site says "Coming Soon" anymore (the underlying `coming-soon` status and `ComingSoonPage` template are still there, ready for whenever a 9th tool gets planned — they're just not pointing at anything right now).
 
 ## Part 1 — Foundation (shell, navigation, homepage) ✅ done
 
@@ -100,9 +104,24 @@ These weren't part of the 3-part compressor plan above — they're the wider "Im
 - [x] Dark mode reviewed on both — no contrast issues
 - [x] Committed to git
 
-### Still to build
+### Part 4 tool — Image to PDF ✅ done
 
-- [ ] Image to PDF — combine one or more images into a single downloadable PDF
+- [x] **Image to PDF** (`/pdf`) — combine one or more images into a single PDF: drag-to-reorder list (pointer-events based, not native HTML5 drag-and-drop, specifically so it works identically on touch and mouse — same code path handles both), page size (A4, Letter, or Fit-to-image, which sizes each page to its own image instead of a fixed format), portrait/landscape orientation (hidden when Fit-to-image is selected, since that mode picks orientation per-image automatically), margin presets (None/Small/Large), a numbered live-order list that doubles as the "preview", and a result card with page count/file size/time taken plus download
+- [x] Promoted from "Coming Soon" to "Available" in `src/lib/tools.ts`; route is `/pdf` (shorter than the registry's original `/image-to-pdf`, per this round's spec)
+- [x] `jsPDF` added as a dependency — caught and fixed a real bundle-size regression during verification: importing it statically pulled its optional HTML-rendering feature (and *that* pulls in `html2canvas` + `dompurify`) into the app's main bundle, ballooning it from ~550KB to ~960KB. Fixed by dynamically importing `jspdf` inside `buildPdf()`, same lazy-load pattern as `heic2any`/`exifr` — confirmed via a rebuild that the main bundle dropped back to ~560KB and jsPDF + its transitive deps now live in on-demand chunks that only load when `/pdf` is actually used
+- [x] Verified the drag reorder actually reorders the underlying array (dragged item 1 to position 3 in a 4-image list, confirmed the resulting order), verified `touch-action: none` is set on the drag handle so mobile browsers don't hijack the gesture as a page-scroll, verified all three page-size modes (including that Fit-to-image correctly hides the orientation control), and verified the downloaded file is a real, valid PDF (checked the `%PDF` magic bytes)
+- [x] Verified at 360px: the reorderable list, page-setup controls, and result card all have zero horizontal scroll
+- [x] Dark mode reviewed — no contrast issues
+- [x] Committed to git
+
+## Final Polish Pass ✅ done
+
+- [x] Swept all 8 tool routes at 360px in one pass — confirmed zero horizontal scroll on every single one (compress, resize, convert, crop, rotate, watermark, metadata, pdf)
+- [x] Confirmed the homepage tool grid shows all 8 cards as "Available" (0 "Coming Soon" badges left) and each links to its correct, working route
+- [x] Grepped the codebase for stray "Coming Soon" text — the only remaining references are the `coming-soon` status type, the filter that generates stub routes, and the `ComingSoonPage` template itself, none of which currently render anything (kept intentionally as ready-to-use infrastructure for a future tool, not dead code)
+- [x] Confirmed success-animation consistency: every tool uses either the shared `StatusBadge` component (Compress/Convert/Watermark/Metadata, the batch tools) or the same inline `animate-success-pop`/`animate-check-draw` markup (Resize/Crop/Rotate/PDF, the single-result tools) — no tool has a one-off animation
+- [x] Confirmed the sticky bottom action bar pattern is used consistently where it makes sense (the 4 batch/multi-select tools) and intentionally *not* forced onto the single-result tools (Resize/Crop/Rotate/PDF), which use an inline primary button instead since there's no batch selection to act on
+- [x] Zero console errors across the full verification sweep
 
 ## Production hardening & growth
 - [ ] Unit tests for core image-processing logic (`compress.ts` binary-search/quality targeting, `canvasOps.ts`)

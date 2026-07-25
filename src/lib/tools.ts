@@ -72,10 +72,10 @@ export const TOOLS: ToolDefinition[] = [
   {
     id: 'image-to-pdf',
     name: 'Image to PDF',
-    path: '/image-to-pdf',
-    description: 'Combine one or more images into a single PDF.',
+    path: '/pdf',
+    description: 'Combine and reorder images into a single PDF.',
     icon: '📄',
-    status: 'coming-soon',
+    status: 'active',
   },
 ]
 
