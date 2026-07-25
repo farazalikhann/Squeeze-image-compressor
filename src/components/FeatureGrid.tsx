@@ -5,29 +5,29 @@ const FEATURES = [
     description: 'Every image is processed locally in your browser. Files never leave your device.',
   },
   {
-    icon: '🗜️',
-    title: '5 compression modes',
-    description: 'Smart, Maximum, Custom quality, Lossless, and Lossy — pick what fits your image.',
+    icon: '🧰',
+    title: 'One platform, many tools',
+    description: 'Compress, resize, convert, crop, and more — all in one place, more added over time.',
   },
   {
     icon: '🖼️',
-    title: 'Format conversion',
-    description: 'Convert freely between JPG, PNG, WebP, and AVIF, with automatic fallbacks.',
-  },
-  {
-    icon: '✂️',
-    title: 'Crop, resize & rotate',
-    description: 'Full editing toolkit — interactive crop, resize with aspect lock, rotate, and flip.',
+    title: 'Format-friendly',
+    description: 'Works with JPG, PNG, WebP, AVIF, and HEIC, with automatic fallbacks where needed.',
   },
   {
     icon: '📦',
     title: 'Batch processing',
-    description: 'Drop in up to 100 images and compress them all, then download as one ZIP.',
+    description: 'Drop in up to 100 images and process them all, then download as one ZIP.',
   },
   {
     icon: '🧹',
     title: 'Metadata removed',
     description: 'EXIF and location data is stripped automatically — no extra step required.',
+  },
+  {
+    icon: '🚫',
+    title: 'No accounts, no tracking',
+    description: 'Nothing to sign up for, nothing sent to a server. Just open a tool and use it.',
   },
 ]
 
@@ -39,7 +39,7 @@ export default function FeatureGrid() {
           Everything you need, nothing leaves your device
         </h2>
         <p className="mt-2.5 text-slate-500 dark:text-slate-400">
-          A full image toolkit that runs entirely client-side.
+          A growing toolkit that runs entirely client-side.
         </p>
       </div>
 
