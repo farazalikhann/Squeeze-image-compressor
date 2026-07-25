@@ -54,7 +54,7 @@ export default function ImageCard({
             {image.fileName}
           </p>
           <p className="mt-0.5 text-xs text-slate-500 dark:text-slate-400">
-            {image.originalWidth > 0 ? `${image.originalWidth}×${image.originalHeight}` : 'Reading…'}
+            {image.originalWidth > 0 ? `${image.originalWidth}×${image.originalHeight}` : image.status === 'error' ? '—' : 'Reading…'}
             {hasResult && image.processedWidth && (
               <>
                 {' '}
@@ -110,13 +110,15 @@ export default function ImageCard({
           >
             {image.status === 'processing' ? 'Compressing…' : hasResult ? 'Re-compress' : 'Compress'}
           </button>
-          <button
-            type="button"
-            onClick={() => onEdit(image.id)}
-            className="rounded-lg border border-slate-200 px-2.5 py-1 text-xs font-medium text-slate-600 transition-colors hover:border-indigo-300 hover:text-indigo-600 dark:border-slate-700 dark:text-slate-300 dark:hover:border-indigo-500 dark:hover:text-indigo-400"
-          >
-            Edit
-          </button>
+          {image.originalWidth > 0 && (
+            <button
+              type="button"
+              onClick={() => onEdit(image.id)}
+              className="rounded-lg border border-slate-200 px-2.5 py-1 text-xs font-medium text-slate-600 transition-colors hover:border-indigo-300 hover:text-indigo-600 dark:border-slate-700 dark:text-slate-300 dark:hover:border-indigo-500 dark:hover:text-indigo-400"
+            >
+              Edit
+            </button>
+          )}
           {hasResult && (
             <button
               type="button"

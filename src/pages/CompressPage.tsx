@@ -36,6 +36,8 @@ export default function CompressPage() {
 
   const isProcessing = images.some((img) => img.status === 'processing')
   const selectedCount = images.filter((img) => img.selected).length
+  const settledCount = images.filter((img) => img.status === 'done' || img.status === 'error').length
+  const progressPercent = images.length > 0 ? Math.round((settledCount / images.length) * 100) : 0
   const editingImage = useMemo(() => images.find((img) => img.id === editingId) ?? null, [images, editingId])
   const previewImage = useMemo(() => images.find((img) => img.id === previewId) ?? null, [images, previewId])
 
@@ -110,6 +112,23 @@ export default function CompressPage() {
                 {images.length} image{images.length !== 1 ? 's' : ''} in queue
               </h2>
             </div>
+
+            {isProcessing && (
+              <div className="mb-4">
+                <div className="mb-1.5 flex items-center justify-between text-xs text-slate-500 dark:text-slate-400">
+                  <span>Compressing…</span>
+                  <span>
+                    {settledCount}/{images.length}
+                  </span>
+                </div>
+                <div className="h-1.5 w-full overflow-hidden rounded-full bg-slate-200 dark:bg-slate-800">
+                  <div
+                    className="h-full rounded-full bg-indigo-600 transition-all duration-300"
+                    style={{ width: `${progressPercent}%` }}
+                  />
+                </div>
+              </div>
+            )}
 
             <div className="grid grid-cols-1 gap-3 pb-6 lg:grid-cols-2">
               {images.map((img) => (

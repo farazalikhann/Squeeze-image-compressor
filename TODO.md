@@ -39,7 +39,25 @@ Tracks all planned work across the 3 build parts. Update this file as parts prog
 
 Batch processing, crop/rotate/resize editing, batch rename, and ZIP download were already built in the prior session and continue to work unchanged — verified they still function after this pass, not re-listed as new here.
 
-## Part 3 — Remaining tools, hardening & growth
+## Part 3 — Batch Processing, ZIP Download & Polish ✅ done
+
+- [x] Batch upload accepting up to 100 images (`MAX_FILES`), each with its own pending/processing/done/error status
+- [x] Per-image stats card shown in the batch list (size, % saved, time taken)
+- [x] Total summary — total original size, total compressed size, total % saved — now visible on mobile too (a condensed "Saved X%" pill; the full byte breakdown still shows at `md:` and up to avoid crowding small screens)
+- [x] **Batch progress bar** — "Compressing… X/Y" shown above the queue while a batch run is in flight (`CompressPage.tsx`)
+- [x] Individual image download
+- [x] Download All as ZIP (`jszip` + `file-saver`)
+- [x] Friendly warning when a browser can't encode a format (already existed, reverified)
+- [x] Friendly, honest error state for corrupt/unreadable files — fixed two real bugs found while testing this: a permanently-errored file no longer shows "Reading…" forever, and the "Edit" button is now hidden for files that never successfully decoded (editing a file with no valid image data made no sense and showed a blank crop screen)
+- [x] **`DownloadBar` rebuilt mobile-first** — "Rename" and "Clear all" were previously hidden entirely below the `sm` breakpoint, meaning phone users had no way to reach them; they're now always visible, and Compress/Download buttons are full-width tap targets on small screens
+- [x] Verified with a real batch (14 images + 1 corrupt file): per-file status, ZIP download, batch rename, and the 100-image cap rejection banner (tested with 105 files — 100 accepted, 5 correctly rejected) all work correctly
+- [x] Dark mode reviewed across the batch list, download bar, edit/crop toolbar, rename modal, and preview modal — no contrast issues found
+- [x] Verified at 360px: batch grid, download bar, edit/crop toolbar, rename modal — zero horizontal scroll, large tap targets throughout
+- [x] Committed to git
+
+## Backlog (beyond the 3-part compressor build)
+
+These weren't part of the 3-part compressor plan above — they're future work for the wider "Image Tools" platform.
 
 **Other tools:**
 - [ ] Image Resizer — exact dimensions or percentage scale, aspect-lock option
