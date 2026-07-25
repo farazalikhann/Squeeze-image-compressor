@@ -2,6 +2,8 @@ import { Route, Routes } from 'react-router-dom'
 import Layout from './components/Layout'
 import HomePage from './pages/HomePage'
 import CompressPage from './pages/CompressPage'
+import ResizePage from './pages/ResizePage'
+import ConvertPage from './pages/ConvertPage'
 import ComingSoonPage from './pages/ComingSoonPage'
 import NotFoundPage from './pages/NotFoundPage'
 import { TOOLS } from './lib/tools'
@@ -12,6 +14,8 @@ export default function App() {
       <Route element={<Layout />}>
         <Route index element={<HomePage />} />
         <Route path="compress" element={<CompressPage />} />
+        <Route path="resize" element={<ResizePage />} />
+        <Route path="convert" element={<ConvertPage />} />
         {TOOLS.filter((tool) => tool.status === 'coming-soon').map((tool) => (
           <Route key={tool.id} path={tool.path.slice(1)} element={<ComingSoonPage tool={tool} />} />
         ))}

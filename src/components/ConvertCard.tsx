@@ -1,29 +1,28 @@
-import type { QueueImage } from '../types'
-import { formatBytes, formatDuration, formatPercent } from '../utils/format'
+import type { ConvertImage } from '../hooks/useConvertQueue'
+import { formatBytes, formatDuration } from '../utils/format'
 import StatusBadge from './StatusBadge'
 
 interface Props {
-  image: QueueImage
+  image: ConvertImage
+  targetFormat: string
   onRemove: (id: string) => void
-  onEdit: (id: string) => void
   onPreview: (id: string) => void
   onDownload: (id: string) => void
-  onCompress: (id: string) => void
+  onConvert: (id: string) => void
   onToggleSelect: (id: string) => void
 }
 
-export default function ImageCard({
+export default function ConvertCard({
   image,
+  targetFormat,
   onRemove,
-  onEdit,
   onPreview,
   onDownload,
-  onCompress,
+  onConvert,
   onToggleSelect,
 }: Props) {
   const hasResult = image.status === 'done' && image.processedSize != null
-  const percentSaved = hasResult ? formatPercent(image.originalSize, image.processedSize!) : 0
-  const bytesSaved = hasResult ? Math.max(0, image.originalSize - image.processedSize!) : 0
+  const originalLabel = image.originalFormat.replace('image/', '').toUpperCase()
 
   return (
     <div className="group relative flex animate-fade-in gap-4 rounded-2xl border border-slate-200 bg-white p-3 shadow-sm transition-shadow hover:shadow-md dark:border-slate-800 dark:bg-slate-900 sm:p-4">
@@ -41,11 +40,7 @@ export default function ImageCard({
         onClick={() => onPreview(image.id)}
         className="relative h-24 w-24 shrink-0 overflow-hidden rounded-xl bg-slate-100 dark:bg-slate-800 sm:h-28 sm:w-28"
       >
-        <img
-          src={image.processedUrl ?? image.originalUrl}
-          alt={image.fileName}
-          className="h-full w-full object-cover"
-        />
+        <img src={image.processedUrl ?? image.originalUrl} alt={image.fileName} className="h-full w-full object-cover" />
         <StatusBadge status={image.status} />
       </button>
 
@@ -56,37 +51,30 @@ export default function ImageCard({
           </p>
           <p className="mt-0.5 text-xs text-slate-500 dark:text-slate-400">
             {image.originalWidth > 0 ? `${image.originalWidth}×${image.originalHeight}` : image.status === 'error' ? '—' : 'Reading…'}
-            {hasResult && image.processedWidth && (
-              <>
-                {' '}
-                → {image.processedWidth}×{image.processedHeight}
-              </>
-            )}
           </p>
 
           <div className="mt-1.5 flex flex-wrap items-center gap-x-2 gap-y-1 text-xs">
+            <span className="rounded-md bg-slate-100 px-1.5 py-0.5 font-semibold text-slate-600 dark:bg-slate-800 dark:text-slate-300">
+              {originalLabel}
+            </span>
             <span className="text-slate-500 dark:text-slate-400">{formatBytes(image.originalSize)}</span>
-            {hasResult && (
+            {hasResult ? (
               <>
                 <span className="text-slate-400">→</span>
-                <span className="font-medium text-slate-700 dark:text-slate-200">
-                  {formatBytes(image.processedSize!)}
+                <span className="rounded-md bg-indigo-50 px-1.5 py-0.5 font-semibold text-indigo-700 dark:bg-indigo-500/10 dark:text-indigo-400">
+                  {image.processedFormat?.replace('image/', '').toUpperCase()}
                 </span>
-                <span
-                  className={`rounded-full px-2 py-0.5 font-semibold ${
-                    percentSaved > 0
-                      ? 'bg-emerald-50 text-emerald-700 dark:bg-emerald-500/10 dark:text-emerald-400'
-                      : 'bg-slate-100 text-slate-500 dark:bg-slate-800 dark:text-slate-400'
-                  }`}
-                >
-                  {percentSaved > 0 ? `-${percentSaved}%` : 'no change'}
-                </span>
-                {bytesSaved > 0 && (
-                  <span className="text-slate-400 dark:text-slate-500">saved {formatBytes(bytesSaved)}</span>
-                )}
+                <span className="font-medium text-slate-700 dark:text-slate-200">{formatBytes(image.processedSize!)}</span>
                 {image.processingTimeMs != null && (
                   <span className="text-slate-400 dark:text-slate-500">⏱ {formatDuration(image.processingTimeMs)}</span>
                 )}
+              </>
+            ) : (
+              <>
+                <span className="text-slate-400">→</span>
+                <span className="rounded-md bg-slate-100 px-1.5 py-0.5 font-semibold text-slate-500 dark:bg-slate-800 dark:text-slate-400">
+                  {targetFormat}
+                </span>
               </>
             )}
             {image.status === 'error' && (
@@ -105,21 +93,12 @@ export default function ImageCard({
         <div className="flex flex-wrap gap-1.5">
           <button
             type="button"
-            onClick={() => onCompress(image.id)}
+            onClick={() => onConvert(image.id)}
             disabled={image.status === 'processing'}
             className="rounded-lg bg-indigo-600 px-2.5 py-1 text-xs font-medium text-white transition-colors hover:bg-indigo-700 disabled:cursor-not-allowed disabled:opacity-60"
           >
-            {image.status === 'processing' ? 'Compressing…' : hasResult ? 'Re-compress' : 'Compress'}
+            {image.status === 'processing' ? 'Converting…' : hasResult ? 'Re-convert' : 'Convert'}
           </button>
-          {image.originalWidth > 0 && (
-            <button
-              type="button"
-              onClick={() => onEdit(image.id)}
-              className="rounded-lg border border-slate-200 px-2.5 py-1 text-xs font-medium text-slate-600 transition-colors hover:border-indigo-300 hover:text-indigo-600 dark:border-slate-700 dark:text-slate-300 dark:hover:border-indigo-500 dark:hover:text-indigo-400"
-            >
-              Edit
-            </button>
-          )}
           {hasResult && (
             <button
               type="button"

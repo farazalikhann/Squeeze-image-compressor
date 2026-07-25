@@ -1,19 +1,41 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
-import type { CompressionSettings, ImageEdits, QueueImage } from '../types'
-import { DEFAULT_EDITS, FORMAT_EXT } from '../types'
+import type { OutputFormat, QueueStatus } from '../types'
+import { FORMAT_EXT } from '../types'
 import { genId, stripExtension } from '../utils/format'
 import { getImageDimensions } from '../utils/imageLoader'
-import { compressImage } from '../utils/compress'
+import { convertImage } from '../utils/convert'
+import { guessFormatFromFile } from '../utils/resolveFormat'
 import { isAcceptedImageFile, MAX_FILES } from '../utils/fileValidation'
 import { runWithConcurrency } from '../utils/concurrency'
 
 export { MAX_FILES }
 const CONCURRENCY = 3
 
-export function useImageQueue() {
-  const [images, setImages] = useState<QueueImage[]>([])
+export interface ConvertImage {
+  id: string
+  file: File
+  originalUrl: string
+  originalSize: number
+  originalWidth: number
+  originalHeight: number
+  originalFormat: OutputFormat
+  fileName: string
+  status: QueueStatus
+  errorMessage?: string
+  processedBlob?: Blob
+  processedUrl?: string
+  processedSize?: number
+  processedWidth?: number
+  processedHeight?: number
+  processedFormat?: OutputFormat
+  processingTimeMs?: number
+  selected: boolean
+}
+
+export function useConvertQueue() {
+  const [images, setImages] = useState<ConvertImage[]>([])
   const [rejectedFiles, setRejectedFiles] = useState<string[]>([])
-  const imagesRef = useRef<QueueImage[]>([])
+  const imagesRef = useRef<ConvertImage[]>([])
   imagesRef.current = images
 
   useEffect(() => {
@@ -36,17 +58,16 @@ export function useImageQueue() {
     if (allRejected.length > 0) setRejectedFiles(allRejected)
     if (toAdd.length === 0) return
 
-    const placeholders: QueueImage[] = toAdd.map((file) => ({
+    const placeholders: ConvertImage[] = toAdd.map((file) => ({
       id: genId(),
       file,
       originalUrl: URL.createObjectURL(file),
       originalSize: file.size,
       originalWidth: 0,
       originalHeight: 0,
+      originalFormat: guessFormatFromFile(file),
       fileName: file.name,
       status: 'pending',
-      progress: 0,
-      edits: { ...DEFAULT_EDITS, resize: { ...DEFAULT_EDITS.resize } },
       selected: true,
     }))
 
@@ -88,24 +109,6 @@ export function useImageQueue() {
     setImages([])
   }, [])
 
-  const updateEdits = useCallback((id: string, edits: Partial<ImageEdits>) => {
-    setImages((prev) =>
-      prev.map((img) =>
-        img.id === id
-          ? { ...img, edits: { ...img.edits, ...edits }, status: img.status === 'done' ? 'pending' : img.status }
-          : img,
-      ),
-    )
-  }, [])
-
-  const renameImage = useCallback((id: string, fileName: string) => {
-    setImages((prev) => prev.map((img) => (img.id === id ? { ...img, fileName } : img)))
-  }, [])
-
-  const bulkRename = useCallback((names: Map<string, string>) => {
-    setImages((prev) => prev.map((img) => (names.has(img.id) ? { ...img, fileName: names.get(img.id)! } : img)))
-  }, [])
-
   const toggleSelected = useCallback((id: string) => {
     setImages((prev) => prev.map((img) => (img.id === id ? { ...img, selected: !img.selected } : img)))
   }, [])
@@ -114,84 +117,55 @@ export function useImageQueue() {
     setImages((prev) => prev.map((img) => ({ ...img, selected })))
   }, [])
 
-  const processImage = useCallback(
-    async (id: string, settings: CompressionSettings, overrides?: { edits?: ImageEdits; fileName?: string }) => {
+  const processImage = useCallback(async (id: string, targetFormat: OutputFormat) => {
+    setImages((prev) =>
+      prev.map((img) => (img.id === id ? { ...img, status: 'processing', errorMessage: undefined } : img)),
+    )
+
+    const target = imagesRef.current.find((img) => img.id === id)
+    if (!target) return
+
+    try {
+      const result = await convertImage(target.file, targetFormat)
+      const url = URL.createObjectURL(result.blob)
+
+      setImages((prev) =>
+        prev.map((img) => {
+          if (img.id !== id) return img
+          if (img.processedUrl) URL.revokeObjectURL(img.processedUrl)
+          const base = stripExtension(img.file.name)
+          const ext = FORMAT_EXT[result.format]
+          return {
+            ...img,
+            status: 'done',
+            processedBlob: result.blob,
+            processedUrl: url,
+            processedSize: result.blob.size,
+            processedWidth: result.width,
+            processedHeight: result.height,
+            processedFormat: result.format,
+            processingTimeMs: result.timeMs,
+            fileName: `${base}.${ext}`,
+            errorMessage: result.formatFellBack
+              ? `Your browser can't encode this format here, so we used ${result.format.replace('image/', '').toUpperCase()} instead.`
+              : undefined,
+          }
+        }),
+      )
+    } catch (err) {
       setImages((prev) =>
         prev.map((img) =>
           img.id === id
-            ? {
-                ...img,
-                status: 'processing',
-                errorMessage: undefined,
-                ...(overrides?.edits ? { edits: overrides.edits } : {}),
-                ...(overrides?.fileName ? { fileName: overrides.fileName } : {}),
-              }
+            ? { ...img, status: 'error', errorMessage: err instanceof Error ? err.message : 'Failed to convert image' }
             : img,
         ),
       )
+    }
+  }, [])
 
-      const target = imagesRef.current.find((img) => img.id === id)
-      if (!target) return
-
-      const edits = overrides?.edits ?? target.edits
-      const fileName = overrides?.fileName ?? target.fileName
-
-      try {
-        const result = await compressImage(target.file, edits, settings)
-        const url = URL.createObjectURL(result.blob)
-
-        const warnings: string[] = []
-        if (result.formatFellBack) {
-          warnings.push(
-            `Your browser can't encode this format here, so we used ${result.format.replace('image/', '').toUpperCase()} instead.`,
-          )
-        }
-        if (result.targetSizeReached === false) {
-          warnings.push("Couldn't quite reach the target size — this is the smallest we could get.")
-        }
-
-        setImages((prev) =>
-          prev.map((img) => {
-            if (img.id !== id) return img
-            if (img.processedUrl) URL.revokeObjectURL(img.processedUrl)
-            const base = stripExtension(fileName || img.file.name)
-            const ext = FORMAT_EXT[result.format]
-            return {
-              ...img,
-              status: 'done',
-              processedBlob: result.blob,
-              processedUrl: url,
-              processedSize: result.blob.size,
-              processedWidth: result.width,
-              processedHeight: result.height,
-              processedFormat: result.format,
-              processingTimeMs: result.timeMs,
-              fileName: `${base}.${ext}`,
-              progress: 100,
-              errorMessage: warnings.length > 0 ? warnings.join(' ') : undefined,
-            }
-          }),
-        )
-      } catch (err) {
-        setImages((prev) =>
-          prev.map((img) =>
-            img.id === id
-              ? {
-                  ...img,
-                  status: 'error',
-                  errorMessage: err instanceof Error ? err.message : 'Failed to process image',
-                }
-              : img,
-          ),
-        )
-      }
-    },
-    [],
-  )
-
-  const compressMany = useCallback(
-    async (ids: string[], settings: CompressionSettings) => {
-      await runWithConcurrency(ids, CONCURRENCY, (id) => processImage(id, settings))
+  const convertMany = useCallback(
+    async (ids: string[], targetFormat: OutputFormat) => {
+      await runWithConcurrency(ids, CONCURRENCY, (id) => processImage(id, targetFormat))
     },
     [processImage],
   )
@@ -218,13 +192,10 @@ export function useImageQueue() {
     addFiles,
     removeImage,
     clearAll,
-    updateEdits,
-    renameImage,
-    bulkRename,
     toggleSelected,
     selectAll,
     processImage,
-    compressMany,
+    convertMany,
     totals,
   }
 }

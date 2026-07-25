@@ -59,21 +59,30 @@ Batch processing, crop/rotate/resize editing, batch rename, and ZIP download wer
 - [x] Success animation — the per-image checkmark badge now pops in with a bouncy scale/fade and the tick draws itself in right after (pure CSS keyframes in `index.css`, no animation library)
 - [x] Sticky bottom bar made properly compact on mobile — "Rename"/"Clear all" moved up into the queue header (they're secondary actions, don't need to be pinned) so the sticky bar is just selection + Compress + Download; measured bar height dropped from ~110px to **53px** on a 360px viewport, with more image cards visible above the fold and zero horizontal scroll
 
-## Backlog (beyond the 3-part compressor build)
+## Other Tools (beyond the 3-part compressor build)
 
-These weren't part of the 3-part compressor plan above — they're future work for the wider "Image Tools" platform.
+These weren't part of the 3-part compressor plan above — they're the wider "Image Tools" platform, built in their own batches.
 
-**Other tools:**
-- [ ] Image Resizer — exact dimensions or percentage scale, aspect-lock option
-- [ ] Image Converter — JPG ⇄ PNG ⇄ WebP ⇄ AVIF, with capability fallback (reuse `formatSupport.ts` logic)
+### Part 1 tools — Resizer + Converter ✅ done
+
+- [x] **Image Resizer** (`/resize`) — single-image tool: drag & drop/click/mobile picker upload, Width & Height inputs with a "Lock aspect ratio" toggle that auto-adjusts the other dimension, three preset buttons (1920×1080, 1080×1080, 800×600), live original-vs-target dimensions readout, side-by-side before/after preview, stats (new dimensions, new size, format, time taken), download, JPG/PNG/WebP/AVIF output with graceful fallback
+- [x] **Image Converter** (`/convert`) — batch tool: same upload pattern, a dropdown to pick one target format (JPG/PNG/WebP/AVIF) applied to the whole batch, per-image before → after format + size badges, graceful encode-fallback warning, individual download, and Download All as ZIP
+- [x] Promoted both from "Coming Soon" to "Available" in `src/lib/tools.ts`; homepage grid and Tools nav dropdown reflect it automatically
+- [x] Success checkmark animation reused (shared `StatusBadge` component) on both new tools, matching the compressor
+- [x] Verified at 360px: both tools' upload, controls, and result views have zero horizontal scroll and large tap targets
+- [x] Dark mode reviewed on both — matches the existing theme with no contrast issues
+- [x] **Shared infrastructure extracted to avoid duplicating the compressor's logic**: `utils/concurrency.ts` (`runWithConcurrency`), `utils/fileValidation.ts` (`MAX_FILES`, `isAcceptedImageFile`), `utils/resolveFormat.ts` (format-fallback resolution), a generalized `DownloadBar` (tool-agnostic action label instead of hardcoded "Compress"), a generalized `PreviewModal` (structural `PreviewableImage` type instead of the compressor-specific `QueueImage`), and a loosened `download.ts` (`Downloadable` type). `useImageQueue.ts` (the compressor's hook) was refactored to import the shared validation/concurrency utilities instead of duplicating them, and was smoke-retested afterward to confirm no regression.
+- [x] Committed to git
+
+### Still to build
+
 - [ ] Crop — standalone crop tool (reuse `react-easy-crop` integration from the compressor's edit toolbar)
 - [ ] Rotate — standalone rotate/flip tool
 - [ ] Watermark — text and/or logo image watermark, position/opacity controls
 - [ ] Metadata Remover — strip EXIF/location without necessarily re-compressing
 - [ ] Image to PDF — combine one or more images into a single downloadable PDF
-- [ ] Promote each tool from "Coming Soon" to "Available" in `src/lib/tools.ts` as it ships
 
-**Production hardening & growth:**
+## Production hardening & growth
 - [ ] Unit tests for core image-processing logic (`compress.ts` binary-search/quality targeting, `canvasOps.ts`)
 - [ ] Error boundary so a render crash doesn't blank the whole app
 - [ ] PWA support — manifest + service worker, installable/offline-capable

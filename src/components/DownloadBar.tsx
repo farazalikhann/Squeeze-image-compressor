@@ -13,7 +13,9 @@ interface Props {
   selectedCount: number
   totals: Totals
   isProcessing: boolean
-  onCompressSelected: () => void
+  actionLabel: string
+  actionInProgressLabel: string
+  onAction: () => void
   onDownloadAll: () => void
   onSelectAll: (selected: boolean) => void
 }
@@ -23,7 +25,9 @@ export default function DownloadBar({
   selectedCount,
   totals,
   isProcessing,
-  onCompressSelected,
+  actionLabel,
+  actionInProgressLabel,
+  onAction,
   onDownloadAll,
   onSelectAll,
 }: Props) {
@@ -60,11 +64,11 @@ export default function DownloadBar({
 
         <div className="flex shrink-0 items-center gap-1.5 sm:gap-2">
           <button
-            onClick={onCompressSelected}
+            onClick={onAction}
             disabled={selectedCount === 0 || isProcessing}
             className="h-9 rounded-lg bg-indigo-600 px-3 text-xs font-semibold text-white transition-colors hover:bg-indigo-700 disabled:cursor-not-allowed disabled:opacity-50 sm:h-11 sm:px-4 sm:text-sm"
           >
-            {isProcessing ? 'Compressing…' : `Compress${selectedCount > 0 ? ` (${selectedCount})` : ''}`}
+            {isProcessing ? actionInProgressLabel : `${actionLabel}${selectedCount > 0 ? ` (${selectedCount})` : ''}`}
           </button>
           <button
             onClick={onDownloadAll}

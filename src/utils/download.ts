@@ -1,13 +1,19 @@
 import { saveAs } from 'file-saver'
 import JSZip from 'jszip'
-import type { QueueImage } from '../types'
 
-export function downloadSingle(image: QueueImage) {
+/** Minimal shape needed to download an item — any tool's per-image state
+ *  that has these two fields (QueueImage, ConvertImage, ...) can be passed. */
+export interface Downloadable {
+  fileName: string
+  processedBlob?: Blob
+}
+
+export function downloadSingle(image: Downloadable) {
   if (!image.processedBlob) return
   saveAs(image.processedBlob, image.fileName)
 }
 
-export async function downloadAllAsZip(images: QueueImage[], zipName = 'compressed-images.zip') {
+export async function downloadAllAsZip(images: Downloadable[], zipName = 'compressed-images.zip') {
   const zip = new JSZip()
   const usedNames = new Set<string>()
 

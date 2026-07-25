@@ -1,9 +1,25 @@
 import { useState } from 'react'
-import type { QueueImage } from '../types'
+import type { QueueStatus } from '../types'
 import { formatBytes, formatDuration, formatPercent } from '../utils/format'
 
+/** Minimal shape PreviewModal needs — any tool's per-image state that
+ *  structurally matches this (QueueImage, ConvertImage, ...) can reuse it. */
+export interface PreviewableImage {
+  fileName: string
+  status: QueueStatus
+  originalUrl: string
+  processedUrl?: string
+  originalWidth: number
+  originalHeight: number
+  processedWidth?: number
+  processedHeight?: number
+  originalSize: number
+  processedSize?: number
+  processingTimeMs?: number
+}
+
 interface Props {
-  image: QueueImage
+  image: PreviewableImage
   onClose: () => void
 }
 
