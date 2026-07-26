@@ -76,7 +76,7 @@ export default function HomePage() {
               </button>
             </div>
           ) : isFiltering ? (
-            <div className="grid grid-cols-1 gap-3.5 sm:grid-cols-2 lg:grid-cols-3">
+            <div className="grid grid-cols-2 gap-2.5 sm:gap-3.5 lg:grid-cols-3">
               {filteredTools.map((tool) => (
                 <ToolCard key={tool.id} tool={tool} />
               ))}
@@ -103,7 +103,7 @@ export default function HomePage() {
                     </button>
                   </div>
 
-                  <div className="mt-4 grid grid-cols-1 gap-3.5 sm:grid-cols-2 lg:grid-cols-3">
+                  <div className="mt-4 grid grid-cols-2 gap-2.5 sm:gap-3.5 lg:grid-cols-3">
                     {section.tools.map((tool) => (
                       <ToolCard key={tool.id} tool={tool} />
                     ))}
