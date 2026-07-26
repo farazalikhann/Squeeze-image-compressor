@@ -5,7 +5,7 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
-    "build": "tsc -b && vite build && node scripts/prerender.mjs",
+    "build": "tsc -b && vite build && (node scripts/prerender.mjs || echo \"[build] prerender failed/timed out - shipping CSR-only build\")",
     "build:no-prerender": "tsc -b && vite build",
     "lint": "oxlint",
     "preview": "vite preview"
