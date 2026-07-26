@@ -4,7 +4,9 @@ import tailwindcss from '@tailwindcss/vite'
 
 // https://vite.dev/config/
 export default defineConfig({
-  base: '/Squeeze-image-compressor/',
+  // Served from the squeeze.services custom domain root, not a
+  // github.io/<repo> subpath — base must be "/" for asset URLs to resolve.
+  base: '/',
   plugins: [react(), tailwindcss()],
   worker: {
     format: 'es',

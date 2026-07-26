@@ -8,7 +8,7 @@
       // (e.g. /compress) 404s here. Encode the path into a query string and
       // redirect to index.html, which decodes it back before React mounts.
       // Adapted from https://github.com/rafgraph/spa-github-pages
-      var pathSegmentsToKeep = 1 // keep "/Squeeze-image-compressor"
+      var pathSegmentsToKeep = 0 // served from the domain root, no repo-name subpath to keep
       var l = window.location
       l.replace(
         l.protocol +

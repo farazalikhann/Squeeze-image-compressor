@@ -27,7 +27,8 @@ const distDir = path.join(root, 'dist')
 // keeps dist/'s fallback shell untouched until every route has been captured.
 const stagingDir = path.join(root, '.prerender-staging')
 const PORT = 4174
-const BASE = '/Squeeze-image-compressor'
+// Served from the squeeze.services custom domain root — no repo-name subpath.
+const BASE = ''
 const ORIGIN = `http://localhost:${PORT}`
 
 const ROUTES = ['', 'compress', 'resize', 'convert', 'crop', 'rotate', 'watermark', 'metadata', 'pdf']

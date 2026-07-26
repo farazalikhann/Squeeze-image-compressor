@@ -1,5 +1,5 @@
 export const SITE_NAME = 'Squeeze'
-export const SITE_URL = 'https://farazalikhann.github.io/Squeeze-image-compressor'
+export const SITE_URL = 'https://squeeze.services'
 export const DEFAULT_OG_IMAGE = `${SITE_URL}/og-image.png`
 
 export function buildWebApplicationSchema(name: string, description: string, path: string) {
