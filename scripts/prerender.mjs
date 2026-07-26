@@ -48,6 +48,42 @@ function waitForServer(url, timeoutMs = 20000) {
   })
 }
 
+// Headless Chromium can hang indefinitely instead of erroring when a CI
+// sandbox/shared-memory issue prevents it from starting properly — without
+// this, a bad CI environment turns into a silent multi-hour job hang instead
+// of a fast, readable failure.
+function withTimeout(promise, ms, message) {
+  let timer
+  const timeout = new Promise((_, reject) => {
+    timer = setTimeout(() => reject(new Error(message)), ms)
+  })
+  return Promise.race([promise, timeout]).finally(() => clearTimeout(timer))
+}
+
+async function renderRoute(browser, route) {
+  const context = await browser.newContext()
+  const page = await context.newPage()
+  try {
+    const url = `${ORIGIN}${BASE}/${route}`
+    await page.goto(url, { waitUntil: 'networkidle' })
+    // Helmet updates <head> in a post-render effect; wait for it explicitly
+    // rather than trusting networkidle timing alone. <meta> is never
+    // "visible", so wait for it to be attached to the DOM instead.
+    await page.waitForSelector('meta[name="description"]', { state: 'attached', timeout: 10000 })
+    await page.waitForTimeout(150)
+
+    // page.content() already includes the document's own "<!DOCTYPE html>",
+    // so no need to prepend a second one.
+    const html = await page.content()
+    const outDir = route === '' ? stagingDir : path.join(stagingDir, route)
+    await mkdir(outDir, { recursive: true })
+    await writeFile(path.join(outDir, 'index.html'), html, 'utf-8')
+    console.log(`[prerender] captured ${route === '' ? '/index.html' : `/${route}/index.html`}`)
+  } finally {
+    await context.close()
+  }
+}
+
 async function main() {
   if (!existsSync(distDir)) {
     throw new Error('dist/ not found — run `vite build` before prerendering')
@@ -72,7 +108,14 @@ async function main() {
 
     await rm(stagingDir, { recursive: true, force: true })
 
-    const browser = await chromium.launch()
+    // --no-sandbox/--disable-dev-shm-usage: standard hardening for headless
+    // Chromium on CI runners, where the sandbox or /dev/shm can be
+    // restricted in ways that otherwise make the browser fail to start.
+    const browser = await withTimeout(
+      chromium.launch({ args: ['--no-sandbox', '--disable-setuid-sandbox', '--disable-dev-shm-usage'] }),
+      30000,
+      'chromium.launch() timed out after 30s',
+    )
 
     // A fresh browser context (and page) per route, not one page reused
     // across goto() calls — react-helmet-async accumulates stale <title>/
@@ -80,24 +123,7 @@ async function main() {
     // same page object is reused across navigations. A clean context avoids
     // that entirely and mirrors how a real visitor loads each URL.
     for (const route of ROUTES) {
-      const context = await browser.newContext()
-      const page = await context.newPage()
-      const url = `${ORIGIN}${BASE}/${route}`
-      await page.goto(url, { waitUntil: 'networkidle' })
-      // Helmet updates <head> in a post-render effect; wait for it explicitly
-      // rather than trusting networkidle timing alone. <meta> is never
-      // "visible", so wait for it to be attached to the DOM instead.
-      await page.waitForSelector('meta[name="description"]', { state: 'attached', timeout: 10000 })
-      await page.waitForTimeout(150)
-
-      // page.content() already includes the document's own "<!DOCTYPE html>",
-      // so no need to prepend a second one.
-      const html = await page.content()
-      const outDir = route === '' ? stagingDir : path.join(stagingDir, route)
-      await mkdir(outDir, { recursive: true })
-      await writeFile(path.join(outDir, 'index.html'), html, 'utf-8')
-      console.log(`[prerender] captured ${route === '' ? '/index.html' : `/${route}/index.html`}`)
-      await context.close()
+      await withTimeout(renderRoute(browser, route), 20000, `Timed out rendering route "${route || '/'}" after 20s`)
     }
 
     await browser.close()
